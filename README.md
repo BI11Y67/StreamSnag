@@ -1,122 +1,50 @@
 # StreamSnag — Video Downloader
 
-A web UI to download videos from the internet using **yt-dlp** on the backend. Supports 720p, 1080p, 2K, 4K, and MP3. Includes an **AI Link Finder** (OpenAI) to extract video URLs from any webpage, plus cookie upload for bulk/age-restricted downloads.
+Download videos from **YouTube, Instagram, X, and 1000+ sites** — free, no ads.
 
-## Features
+## What it does
 
-- **Quick Download**: Paste a video or playlist URL, choose quality (720p / 1080p / 2K / 4K / MP3), and download.
-- **Playlist support**: Paste a YouTube (or other) playlist URL to download the whole playlist.
-- **Multiple links**: Paste several URLs (one per line) and download all at once.
-- **AI Link Finder**: Paste a link to an article or page; the app finds embedded video URLs (YouTube, Vimeo, etc.) so you can download them even when you can't copy the video link.
-- **Bulk download**: After finding links (or pasting multiple URLs), download all in one go.
-- **Cookie upload**: Upload a cookies file when a site (e.g. YouTube) requires login for bulk or age-restricted content.
-- **Download queue**: See progress and save completed files from the queue.
-- **Donate & GitHub**: Footer links for support and your profile (see [Configuration](#configuration)).
+- **Quick Download**: Paste a video URL → pick a quality or format → download
+- **Playlist**: Paste a playlist URL to download all videos
+- **Multiple links**: Paste several URLs (one per line) and download all at once
+- **Download queue**: See progress and save completed files
+- **Cookie upload**: For age-restricted or bulk downloads that require login
 
-## Requirements
+## Supported sites
 
-- **Python 3.10+**
-- **Node.js 18+** (for frontend build)
-- **ffmpeg** on PATH (for merging video+audio and MP3)
-- **OpenAI API key** (optional; only needed for AI Link Finder)
+YouTube, Instagram, X (Twitter), TikTok, Vimeo, Dailymotion, Twitch, SoundCloud, Bandcamp, Facebook, Reddit, and 1000+ more.
 
-## Setup
+## How to use
 
-### 1. Backend
+1. Paste a video URL (from YouTube, Instagram, X, or any supported site)
+2. Pick a quality (720p, 1080p, MP3, etc.) or choose from available formats
+3. Click **Download**
+4. When done, click **Save file** in the queue
 
-```bash
-cd backend
-python -m venv venv
-venv\Scripts\activate   # Windows
-# source venv/bin/activate  # macOS/Linux
-pip install -r requirements.txt
-```
+### Cookies for restricted content
 
-Copy `.env.example` to `.env` and set your OpenAI key (optional):
+Some videos (e.g. age-restricted or private playlists) need cookies:
 
-```bash
-copy .env.example .env
-# Edit .env: OPENAI_API_KEY=sk-your-key
-```
+1. Use a browser extension like "Get cookies.txt" to export cookies for the site
+2. Upload the `.txt` file in the **Upload cookies** section
+3. Start your download — the app will use the cookies for that session
 
-Start the API:
+## Support us
 
-```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
+No ads — we keep the experience clean. If you use StreamSnag often, please consider donating to help keep it running:
 
-### 2. Frontend
+- **Bitcoin**
+- **UPI** (India)
+- **GitHub** — star the repo
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## Use online / self-host
 
-Open **http://localhost:5173**. The dev server proxies `/api` to the backend.
-
-### 3. Production (single server)
-
-Build the frontend and serve it from the backend:
-
-```bash
-cd frontend && npm run build && cd ..
-cd backend && uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
-Then open **http://localhost:8000**. The backend serves the built UI and API from the same origin.
-
-## Configuration
-
-- **Donate / GitHub links**: Edit `frontend/src/components/Footer.jsx` and set `GITHUB_URL` and `DONATE_URL` to your profile and donate page (e.g. GitHub Sponsors, Ko-fi, Buy Me a Coffee).
-- **CLEANUP_AGE_HOURS** (backend): How long to keep downloaded files before cleanup (default: 2). Set via `.env` or environment variables.
-
-## Deployment
-
-StreamSnag can be deployed with Docker. The included `Dockerfile` builds the frontend, installs ffmpeg and Python deps, and serves both the API and UI from a single container.
-
-### Docker (local)
-
-```bash
-docker build -t streamsnag .
-docker run -p 8000:8000 -e OPENAI_API_KEY=sk-your-key streamsnag
-```
-
-Open **http://localhost:8000**.
-
-### Railway
-
-1. Push the repo to GitHub.
-2. Go to [Railway](https://railway.app), create a project, and connect the repo.
-3. Railway auto-detects the `Dockerfile` (or use `railway.json`).
-4. Set `OPENAI_API_KEY` in the Variables tab.
-5. Deploy. Railway assigns a public URL.
-
-### Render
-
-1. Push the repo to GitHub.
-2. Go to [Render](https://render.com), New > Web Service, connect the repo.
-3. Set runtime to **Docker** (uses root `Dockerfile`).
-4. Set `OPENAI_API_KEY` in Environment.
-5. Deploy. Render assigns a public URL.
-
-`render.yaml` in the repo provides a Blueprint config for infrastructure-as-code.
-
-### Fly.io / VPS
-
-Use `fly launch` (Fly.io) or run `docker run` on any VPS. Ensure the container listens on the platform's `PORT` (the Dockerfile uses `$PORT` with fallback 8000).
-
-**Note:** Public video-download services may violate some platforms' ToS. Deploy at your own risk; some hosts may restrict such apps.
-
-## Cookies for YouTube / restricted content
-
-1. Use a browser extension (e.g. "Get cookies.txt") to export cookies for youtube.com.
-2. In the app, open **Upload cookies** and upload the `.txt` file.
-3. Start your bulk or age-restricted download; the backend will use the cookie file for that session.
+- **Use online**: Visit the live site (if available) and start downloading
+- **Self-host**: Use the `Dockerfile` to run StreamSnag on your own server. See `Dockerfile` and run `docker build` + `docker run` for basic usage.
 
 ## Disclaimer
 
-This tool is for personal use. Respect copyright and each platform’s terms of service. The authors are not responsible for misuse.
+StreamSnag is for **personal use only**. Respect copyright and each platform's terms of service. The authors are not responsible for misuse.
 
 ## License
 
