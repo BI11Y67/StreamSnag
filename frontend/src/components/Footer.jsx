@@ -5,7 +5,10 @@ const GITHUB_URL = 'https://github.com/bi11y67'
 const BITCOIN_ADDRESS = 'bc1qdz50swgf4z9n4px3zu0lera9fcnkj5wx3l405g'
 const BITCOIN_LINK = `bitcoin:${BITCOIN_ADDRESS}`
 const UPI_ID = 'mukeshavik@ybl'
-const UPI_LINK = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=StreamSnag&cu=INR`
+const UPI_PAYEE = 'StreamSnag'
+// App-specific deep links (avoid generic upi:// which opens WhatsApp)
+const PHONEPE_LINK = `phonepe://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE)}&cu=INR`
+const GPAY_LINK = `tez://upi/pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE)}&cu=INR`
 
 const IconBitcoin = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -56,28 +59,36 @@ export default function Footer() {
           <IconBitcoin />
           <span>Bitcoin</span>
         </a>
-        {isMobile ? (
-          <a href={UPI_LINK} className="footer-btn footer-btn-upi" title="Pay via UPI — opens PhonePe, GPay, or any UPI app">
-            <IconUPI />
-            <span>Pay via UPI</span>
-          </a>
-        ) : (
+        <div className="footer-upi-group">
+          {isMobile && (
+            <>
+              <a href={PHONEPE_LINK} className="footer-btn footer-btn-upi footer-btn-phonepe" title="Pay via PhonePe">
+                <IconUPI />
+                <span>PhonePe</span>
+              </a>
+              <a href={GPAY_LINK} className="footer-btn footer-btn-upi footer-btn-gpay" title="Pay via Google Pay">
+                <IconUPI />
+                <span>GPay</span>
+              </a>
+            </>
+          )}
           <button
             type="button"
             onClick={handleCopyUpi}
-            className="footer-btn footer-btn-upi"
-            title="Copy UPI ID"
+            className="footer-btn footer-btn-upi footer-btn-copy"
+            title="Copy UPI ID — paste in Paytm, BHIM, or any UPI app"
             aria-label="Copy UPI ID"
           >
             <IconUPI />
             <span>{copied ? 'Copied!' : 'Copy UPI ID'}</span>
           </button>
-        )}
+        </div>
         <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="footer-btn footer-btn-github" title="GitHub">
           <IconGitHub />
           <span>GitHub</span>
         </a>
       </div>
+      <p className="footer-upi-note">Prefer PhonePe or GPay? Copy the UPI ID and paste in your app.</p>
       <p className="footer-credit">Powered by yt-dlp. Uses FFmpeg. Personal use only; respect copyright and platform ToS.</p>
     </footer>
   )
