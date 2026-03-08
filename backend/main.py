@@ -89,16 +89,41 @@ class AgentBulkRequest(BaseModel):
 class PlaylistDownloadRequest(BaseModel):
     playlist_url: str
     quality: str
+    format_id: Optional[str] = None
     session_id: Optional[str] = None
-    premium_key: Optional[str] = None
 
 
-def _suggest_format_alternative(requested: str, error: str) -> Optional[str]:
+def _sanitize_error_for_user(error: str) -> str:
+    """Rewrite yt-dlp/CLI messages so the public only sees relevant info."""
+    out = error
+    # Remove CLI-only hints the public can't use
+    if "list-formats" in out.lower() or "list_formats" in out.lower():
+        out = re.sub(
+            r"\s*Use\s+--list-formats\s+for\s+a\s+list\s+of\s+available\s+formats\.?\s*",
+            " ",
+            out,
+            flags=re.IGNORECASE,
+        )
+        out = re.sub(
+            r"\s*Use\s+--list_formats\s+for\s+a\s+list\s+of\s+available\s+formats\.?\s*",
+            " ",
+            out,
+            flags=re.IGNORECASE,
+        )
+    if "requested format" in out.lower() or "format is not available" in out.lower():
+        out = "This format isn't available for this video."
+    out = out.strip()
+    return out or "Download failed."
+
+
+def _suggest_format_alternative(requested: str, error: str, format_id: Optional[str] = None) -> Optional[str]:
     """Suggest an alternative format when the requested one fails."""
     err_lower = error.lower()
     if "requested format" in err_lower or "format is not available" in err_lower or "no video formats" in err_lower:
+        if format_id and format_id not in FORMAT_MAP:
+            return "Try a recommended format at the top, or pick another from the list."
         fallbacks = {"4k": "2k or 1080p", "2k": "1080p or 720p", "1080p": "720p or 480p", "720p": "480p or 360p",
-                     "480p": "360p", "mp3": "Try m4a (audio) or 720p (video)", "m4a": "Try mp3 (audio)"}
+                     "480p": "360p", "mp3": "Try M4A for audio or 720p for video.", "m4a": "Try MP3 for audio."}
         return fallbacks.get(requested, "Try a lower quality (e.g. 720p or 480p) or MP3 for audio.")
     if "403" in err_lower or "forbidden" in err_lower:
         return "YouTube may be blocking. Try uploading cookies (see Cookie Upload above) or try again later."
@@ -117,7 +142,10 @@ def run_ydl(url: str, out_dir: Path, quality: str, cookies_path: Optional[Path] 
         "extractor_args": {"youtube": {"player_client": ["android"]}},
     }
     if format_id:
-        opts["merge_output_format"] = "mp4"
+        if format_id == "bestaudio":
+            opts["postprocessors"] = [{"key": "FFmpegExtractAudio", "preferredcodec": "m4a", "preferredquality": "0"}]
+        else:
+            opts["merge_output_format"] = "mp4"
     elif quality in ("mp3", "m4a"):
         opts["postprocessors"] = [{"key": "FFmpegExtractAudio", "preferredcodec": "mp3" if quality == "mp3" else "m4a", "preferredquality": "0"}]
     else:
@@ -153,36 +181,28 @@ def run_ydl(url: str, out_dir: Path, quality: str, cookies_path: Optional[Path] 
             err_str = str(e)
             if job_id:
                 jobs[job_id]["status"] = "error"
-                jobs[job_id]["error"] = err_str
-                suggestion = _suggest_format_alternative(quality, err_str)
+                jobs[job_id]["error"] = _sanitize_error_for_user(err_str)
+                suggestion = _suggest_format_alternative(quality, err_str, format_id=format_id)
                 if suggestion:
                     jobs[job_id]["suggestion"] = suggestion
             raise
 
 
-@app.get("/api/formats")
-async def list_formats(
-    url: str = Query(...),
-    session_id: Optional[str] = Query(None),
-):
-    """List available formats for a video URL."""
-    cookies_path = session_cookies.get(session_id) if session_id else None
-    opts = {"quiet": True, "extractor_args": {"youtube": {"player_client": ["android"]}}}
-    if cookies_path and cookies_path.exists():
-        opts["cookiefile"] = str(cookies_path)
-    with yt_dlp.YoutubeDL(opts) as ydl:
-        try:
-            info = ydl.extract_info(url, download=False)
-        except Exception as e:
-            raise HTTPException(400, f"Could not fetch video info: {str(e)}")
+def _extract_formats_from_info(info: dict, skip_fallbacks: bool = False) -> list:
+    """Build format list with type (video/audio/video+audio) from yt-dlp info."""
     fmts = info.get("formats") or []
-    out = [{"format_id": "best", "label": "Best (auto)", "resolution": "", "ext": ""}]
     seen = set()
-    for f in sorted(fmts, key=lambda x: (x.get("height") or 0, x.get("quality") or 0), reverse=True):
+    video_fmts = []
+    audio_fmts = []
+    for f in fmts:
         fid = f.get("format_id")
-        if not fid or fid in seen:
+        if fid is None:
             continue
-        vcodec, acodec = f.get("vcodec") or "none", f.get("acodec") or "none"
+        fid = str(fid)
+        if fid in seen:
+            continue
+        vcodec = (f.get("vcodec") or "none").lower()
+        acodec = (f.get("acodec") or "none").lower()
         if vcodec == "none" and acodec == "none":
             continue
         seen.add(fid)
@@ -190,9 +210,66 @@ async def list_formats(
         res = f.get("resolution") or (f"{h}p" if h else "")
         ext = f.get("ext", "")
         desc = f.get("format_note") or ""
-        label = " | ".join(x for x in [res, ext, desc, f"id:{fid}"] if x)
-        out.append({"format_id": fid, "label": label, "resolution": res, "ext": ext})
-    return {"formats": out, "title": info.get("title", "")}
+        if vcodec != "none" and acodec != "none":
+            fmt_type = "video+audio"
+        elif vcodec != "none":
+            fmt_type = "video"
+        else:
+            fmt_type = "audio"
+        parts = [res, ext, desc] if res or ext else [ext or "?", f"id:{fid}"]
+        label = " | ".join(x for x in parts if x)
+        entry = {"format_id": fid, "label": label, "resolution": res, "ext": ext, "type": fmt_type}
+        if fmt_type == "audio":
+            audio_fmts.append(entry)
+        else:
+            video_fmts.append(entry)
+    if not skip_fallbacks:
+        if not video_fmts:
+            video_fmts = [
+                {"format_id": "bestvideo[height<=720]+bestaudio/best[height<=720]", "label": "720p", "type": "video+audio"},
+                {"format_id": "bestvideo[height<=480]+bestaudio/best[height<=480]", "label": "480p", "type": "video+audio"},
+                {"format_id": "bestvideo[height<=360]+bestaudio/best[height<=360]", "label": "360p", "type": "video+audio"},
+            ]
+        if not audio_fmts:
+            audio_fmts = [
+                {"format_id": "bestaudio", "label": "Best audio", "type": "audio"},
+            ]
+    return [
+        {"format_id": "best", "label": "Best video + audio (auto)", "type": "video+audio"},
+        {"format_id": "bestvideo+bestaudio", "label": "Best video + best audio (merge)", "type": "video+audio"},
+        {"format_id": "bestaudio", "label": "Best audio only", "type": "audio"},
+    ] + video_fmts + audio_fmts
+
+
+@app.get("/api/formats")
+async def list_formats(
+    url: str = Query(...),
+    session_id: Optional[str] = Query(None),
+):
+    """List available formats for a video URL. Tries multiple player clients to get full list."""
+    cookies_path = session_cookies.get(session_id) if session_id else None
+    base_opts = {"quiet": True}
+    if cookies_path and cookies_path.exists():
+        base_opts["cookiefile"] = str(cookies_path)
+    # Try multiple player clients; YouTube often returns more formats with one of these
+    for player_client in ["web", "android", "mweb", "ios"]:
+        opts = {**base_opts, "extractor_args": {"youtube": {"player_client": [player_client]}}}
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            try:
+                info = ydl.extract_info(url, download=False)
+            except Exception:
+                continue
+        fmts = _extract_formats_from_info(info, skip_fallbacks=True)
+        if len(fmts) > 3:
+            return {"formats": _extract_formats_from_info(info, skip_fallbacks=False), "title": info.get("title", "")}
+    # Fallback: use last attempt (ios); add fallback options so Video/Audio sections aren't empty
+    opts = {**base_opts, "extractor_args": {"youtube": {"player_client": ["ios"]}}}
+    with yt_dlp.YoutubeDL(opts) as ydl:
+        try:
+            info = ydl.extract_info(url, download=False)
+        except Exception as e:
+            raise HTTPException(400, f"Could not fetch video info: {str(e)}")
+    return {"formats": _extract_formats_from_info(info, skip_fallbacks=False), "title": info.get("title", "")}
 
 
 @app.post("/api/download")
@@ -319,14 +396,35 @@ Content:
     return {"links": list(found_links), "source": "heuristic"}
 
 
+@app.get("/api/playlist/first-video")
+async def playlist_first_video(
+    url: str = Query(...),
+    session_id: Optional[str] = Query(None),
+):
+    """Return the first video URL in a playlist (for fetching formats)."""
+    cookies_path = session_cookies.get(session_id) if session_id else None
+    ext_opts = {"quiet": True, "extract_flat": "in_playlist"}
+    if cookies_path and cookies_path.exists():
+        ext_opts["cookiefile"] = str(cookies_path)
+    with yt_dlp.YoutubeDL(ext_opts) as ydl:
+        try:
+            info = ydl.extract_info(url, download=False)
+        except Exception as e:
+            raise HTTPException(400, f"Could not read playlist: {str(e)}")
+    entries = info.get("entries") or []
+    for entry in entries:
+        vid_url = entry.get("url")
+        if not vid_url and entry.get("id"):
+            vid_url = f"https://www.youtube.com/watch?v={entry['id']}"
+        if vid_url and vid_url.startswith("http"):
+            return {"url": vid_url}
+    raise HTTPException(400, "No video found in playlist.")
+
+
 @app.post("/api/playlist/download")
 async def playlist_download(body: PlaylistDownloadRequest):
-    """Download whole playlist — Premium feature. Requires valid premium_key."""
-    if not PREMIUM_KEYS:
-        raise HTTPException(503, "Premium playlist download is not configured. Set PREMIUM_KEYS in env.")
-    if not body.premium_key or body.premium_key.strip() not in PREMIUM_KEYS:
-        raise HTTPException(403, "Valid premium key required. Purchase access to use playlist download.")
-    if body.quality not in FORMAT_MAP:
+    """Download whole playlist."""
+    if not body.format_id and body.quality not in FORMAT_MAP:
         raise HTTPException(400, f"Invalid quality. Use one of: {list(FORMAT_MAP.keys())}")
     # Use yt-dlp's built-in playlist support: pass playlist URL directly
     job_ids = []
@@ -352,11 +450,11 @@ async def playlist_download(body: PlaylistDownloadRequest):
         job_id = str(uuid.uuid4())
         out_dir = DOWNLOADS_DIR / job_id
         out_dir.mkdir(parents=True, exist_ok=True)
-        jobs[job_id] = {"status": "started", "progress": 0, "url": vid_url, "quality": body.quality}
+        jobs[job_id] = {"status": "started", "progress": 0, "url": vid_url, "quality": body.quality or body.format_id}
         job_ids.append(job_id)
-        def task(u=vid_url, od=out_dir, q=body.quality, cp=cookies_path, jid=job_id):
+        def task(u=vid_url, od=out_dir, q=body.quality or "1080p", cp=cookies_path, jid=job_id, fid=body.format_id):
             try:
-                run_ydl(u, od, q, cp, jid)
+                run_ydl(u, od, q, cp, jid, format_id=fid)
             except Exception:
                 jobs[jid]["status"] = "error"
                 jobs[jid]["error"] = "Download failed"

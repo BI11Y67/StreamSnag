@@ -21,7 +21,7 @@
 
 .job-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   padding: 0.6rem 0;
@@ -35,14 +35,18 @@
 
 .job-label {
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
   color: var(--text-muted);
 }
 
 .job-status {
   flex-shrink: 0;
+  max-width: 60%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-align: right;
 }
 
 .job-error {

@@ -11,19 +11,24 @@
   font-weight: 700;
 }
 
-.badge-premium {
-  font-size: 0.7rem;
-  background: var(--amber);
-  color: var(--bg);
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
 .playlist-download .hint {
   margin: 0 0 1.25rem;
   color: var(--text-muted);
   font-size: 0.875rem;
+}
+
+.playlist-download .download-form .field-group {
+  margin-bottom: 1.25rem;
+}
+
+.playlist-download .download-form .field-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .playlist-download .url-input {
@@ -34,21 +39,129 @@
   border-radius: var(--radius);
   color: var(--text);
   font-size: 1rem;
-  margin-bottom: 0.75rem;
 }
 
-.premium-key-input {
+.playlist-download .url-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.playlist-download .format-tabs {
+  display: flex;
+  gap: 0 1.5rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.playlist-download .format-tab {
+  padding: 0.5rem 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.playlist-download .format-tab:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.playlist-download .format-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.playlist-download .format-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.playlist-download .format-group .quality-select {
   width: 100%;
-  padding: 0.75rem 1rem;
+  max-width: 100%;
+  min-height: 2.5rem;
+  padding: 0.6rem 0.75rem;
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  font-size: 1rem;
-  margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
 
-.playlist-download .coming-soon {
+.playlist-download .format-loading {
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.playlist-download .format-list {
+  margin-top: 0.5rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-input);
+}
+
+.playlist-download .format-list-section {
+  padding: 0.5rem 0;
+}
+
+.playlist-download .format-list-section:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.playlist-download .format-list-heading {
+  display: block;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
-  font-style: italic;
+}
+
+.playlist-download .format-option {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.playlist-download .format-option:hover:not(:disabled) {
+  background: var(--bg-card);
+}
+
+.playlist-download .format-option.active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+  border-left: 3px solid var(--accent);
+}
+
+.playlist-download .format-option:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.playlist-download .format-list-empty {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.playlist-download .error {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem;
 }

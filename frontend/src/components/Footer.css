@@ -24,15 +24,11 @@
 }
 
 .footer-upi {
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  font-size: 0.95rem;
 }
 
-.footer-upi code {
-  background: var(--bg-input);
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
+.footer-upi strong {
+  font-weight: 700;
 }
 
 .footer-credit {
