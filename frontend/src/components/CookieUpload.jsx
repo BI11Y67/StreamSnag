@@ -7,6 +7,11 @@ export default function CookieUpload({ sessionId }) {
   const [hasFile, setHasFile] = useState(false)
   const inputRef = useRef(null)
 
+  function handleClick() {
+    if (uploading) return
+    inputRef.current?.click()
+  }
+
   async function handleFile(e) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -22,7 +27,7 @@ export default function CookieUpload({ sessionId }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Upload failed')
-      setMessage('Cookies uploaded. They will be used for bulk or age-restricted downloads.')
+      setMessage('Cookies uploaded.')
       setHasFile(true)
     } catch (err) {
       setMessage(err.message || 'Upload failed.')
@@ -34,25 +39,26 @@ export default function CookieUpload({ sessionId }) {
 
   return (
     <div className="cookie-upload">
-      <details className="cookie-details">
-        <summary>Upload cookies (for bulk / age-restricted downloads)</summary>
-        <p className="cookie-hint">
-          If YouTube or another site asks for login when downloading in bulk or for restricted videos, export your cookies (e.g. with a browser extension) and upload the .txt file here.
-        </p>
-        <div className="cookie-row">
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".txt,.cookies"
-            onChange={handleFile}
-            disabled={uploading}
-            className="cookie-input"
-          />
-          {message && (
-            <span className={hasFile ? 'cookie-ok' : 'cookie-err'}>{message}</span>
-          )}
-        </div>
-      </details>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".txt,.cookies"
+        onChange={handleFile}
+        disabled={uploading}
+        className="cookie-input-hidden"
+        aria-hidden
+      />
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={uploading}
+        className="cookie-btn"
+        title="Upload cookies for bulk or age-restricted downloads"
+      >
+        {uploading ? 'Uploading…' : hasFile ? 'Cookies uploaded — click to replace' : 'Upload cookies'}
+      </button>
+      <p className="cookie-hint">For bulk or age-restricted downloads. Export cookies with a browser extension.</p>
+      {message && !hasFile && <span className="cookie-err">{message}</span>}
     </div>
   )
 }
