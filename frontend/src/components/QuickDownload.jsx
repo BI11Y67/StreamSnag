@@ -12,10 +12,17 @@ const PRESETS = [
   { value: 'm4a', label: 'M4A' },
 ]
 
+const URL_EXAMPLES = [
+  'https://www.youtube.com/watch?v=...',
+  'https://x.com/username/status/...',
+  'https://www.instagram.com/reel/...',
+]
+
 export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }) {
   const [url, setUrl] = useState('')
   const [formats, setFormats] = useState([])
   const [formatId, setFormatId] = useState('best')
+  const [formatListOpen, setFormatListOpen] = useState(false)
   const [usePreset, setUsePreset] = useState(true)
   const [preset, setPreset] = useState('1080p')
   const [fetchLoading, setFetchLoading] = useState(false)
@@ -113,22 +120,44 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
   const showFormatList = hasUrlFormats && !usePreset
   const downloadLabel = fetchLoading ? 'Loading formats…' : loading ? 'Starting…' : 'Download'
   const [multiActive, setMultiActive] = useState(false)
+  const [urlPlaceholderIndex, setUrlPlaceholderIndex] = useState(0)
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setUrlPlaceholderIndex((i) => (i + 1) % URL_EXAMPLES.length)
+    }, 2800)
+    return () => clearInterval(t)
+  }, [])
+
+  const selectedFormatLabel = formats.find((f) => f.format_id === formatId)?.label || formatId
+
+  function handleFormatSelect(id) {
+    setFormatId(id)
+    setFormatListOpen(false)
+  }
 
   return (
     <section className="quick-download card">
       <h2>Quick Download</h2>
-      <p className="hint">Paste a video URL. Formats load automatically — pick Video or Audio, then download.</p>
+      <p className="hint">Download videos from YouTube, Instagram, X, and more. Paste a URL, pick a format, then download.</p>
       <form onSubmit={handleSubmit} className="download-form">
-        <div className="field-group">
+        <div className="field-group url-field-wrap">
           <label className="field-label">Video URL</label>
-          <input
-            type="url"
-            placeholder="https://www.youtube.com/watch?v=..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="url-input"
-            disabled={loading}
-          />
+          <div className="url-input-container">
+            <input
+              type="url"
+              placeholder=" "
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="url-input"
+              disabled={loading}
+            />
+            {!url && (
+              <span key={urlPlaceholderIndex} className="url-placeholder-cycle">
+                {URL_EXAMPLES[urlPlaceholderIndex]}
+              </span>
+            )}
+          </div>
         </div>
         {url.trim() && (
           <div className="field-group format-group">
@@ -140,7 +169,10 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
               <button
                 type="button"
                 className={`format-tab ${usePreset ? 'active' : ''}`}
-                onClick={() => setUsePreset(true)}
+                onClick={() => {
+                  setUsePreset(true)
+                  setFormatListOpen(false)
+                }}
                 disabled={loading}
               >
                 Preset
@@ -148,7 +180,10 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
               <button
                 type="button"
                 className={`format-tab ${!usePreset ? 'active' : ''}`}
-                onClick={() => setUsePreset(false)}
+                onClick={() => {
+                  setUsePreset(false)
+                  setFormatListOpen(true)
+                }}
                 disabled={loading || !hasUrlFormats}
               >
                 From URL
@@ -166,57 +201,78 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
                 ))}
               </select>
             ) : (
-              <div className="format-list" aria-label="Available formats">
-                <div className="format-list-section">
-                  <span className="format-list-heading">Recommended</span>
-                  {recommended.map((f) => (
-                    <button
-                      key={f.format_id}
-                      type="button"
-                      className={`format-option ${formatId === f.format_id ? 'active' : ''}`}
-                      onClick={() => setFormatId(f.format_id)}
-                      disabled={loading}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-                <div className="format-list-section">
-                  <span className="format-list-heading">Video</span>
-                  {videoFormats.length > 0 ? (
-                    videoFormats.map((f) => (
-                      <button
-                        key={f.format_id}
-                        type="button"
-                        className={`format-option ${formatId === f.format_id ? 'active' : ''}`}
-                        onClick={() => setFormatId(f.format_id)}
-                        disabled={loading}
-                      >
-                        {f.label}
-                      </button>
-                    ))
-                  ) : (
-                    <span className="format-list-empty">Upload cookies for more video formats</span>
-                  )}
-                </div>
-                <div className="format-list-section">
-                  <span className="format-list-heading">Audio</span>
-                  {audioFormats.length > 0 ? (
-                    audioFormats.map((f) => (
-                      <button
-                        key={f.format_id}
-                        type="button"
-                        className={`format-option ${formatId === f.format_id ? 'active' : ''}`}
-                        onClick={() => setFormatId(f.format_id)}
-                        disabled={loading}
-                      >
-                        {f.label}
-                      </button>
-                    ))
-                  ) : (
-                    <span className="format-list-empty">Upload cookies for more audio formats</span>
-                  )}
-                </div>
+              <div className="format-dropdown">
+                <button
+                  type="button"
+                  className="format-trigger"
+                  onClick={() => setFormatListOpen((o) => !o)}
+                  disabled={loading}
+                  aria-expanded={formatListOpen}
+                  aria-haspopup="listbox"
+                >
+                  {selectedFormatLabel}
+                  <span className="format-chevron">{formatListOpen ? '▲' : '▼'}</span>
+                </button>
+                {formatListOpen && (
+                  <div className="format-list" aria-label="Available formats" role="listbox">
+                    <div className="format-list-section">
+                      <span className="format-list-heading">Recommended</span>
+                      {recommended.map((f) => (
+                        <button
+                          key={f.format_id}
+                          type="button"
+                          role="option"
+                          aria-selected={formatId === f.format_id}
+                          className={`format-option ${formatId === f.format_id ? 'active' : ''}`}
+                          onClick={() => handleFormatSelect(f.format_id)}
+                          disabled={loading}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="format-list-section">
+                      <span className="format-list-heading">Video</span>
+                      {videoFormats.length > 0 ? (
+                        videoFormats.map((f) => (
+                          <button
+                            key={f.format_id}
+                            type="button"
+                            role="option"
+                            aria-selected={formatId === f.format_id}
+                            className={`format-option ${formatId === f.format_id ? 'active' : ''}`}
+                            onClick={() => handleFormatSelect(f.format_id)}
+                            disabled={loading}
+                          >
+                            {f.label}
+                          </button>
+                        ))
+                      ) : (
+                        <span className="format-list-empty">Upload cookies for more video formats</span>
+                      )}
+                    </div>
+                    <div className="format-list-section">
+                      <span className="format-list-heading">Audio</span>
+                      {audioFormats.length > 0 ? (
+                        audioFormats.map((f) => (
+                          <button
+                            key={f.format_id}
+                            type="button"
+                            role="option"
+                            aria-selected={formatId === f.format_id}
+                            className={`format-option ${formatId === f.format_id ? 'active' : ''}`}
+                            onClick={() => handleFormatSelect(f.format_id)}
+                            disabled={loading}
+                          >
+                            {f.label}
+                          </button>
+                        ))
+                      ) : (
+                        <span className="format-list-empty">Upload cookies for more audio formats</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
