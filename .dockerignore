@@ -1,0 +1,13 @@
+node_modules
+frontend/node_modules
+backend/venv
+backend/__pycache__
+**/__pycache__
+.git
+.gitignore
+.env
+*.md
+.env.example
+downloads
+cookies
+.DS_Store

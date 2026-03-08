@@ -1,0 +1,9 @@
+services:
+  - type: web
+    runtime: docker
+    name: streamsnag
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: CLEANUP_AGE_HOURS
+        value: "2"
