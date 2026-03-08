@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './SupportedSites.css'
 
 const SITES = [
-  'YouTube', 'Vimeo', 'Twitter/X', 'TikTok', 'Instagram', 'Dailymotion', 'Twitch',
+  'YouTube', 'Instagram', 'X (Twitter)', 'TikTok', 'Vimeo', 'Dailymotion', 'Twitch',
   'SoundCloud', 'Bandcamp', 'Facebook', 'Reddit', 'TED', 'BitChute', 'Odysee',
 ]
 
@@ -18,11 +18,15 @@ export default function SupportedSites() {
 
   return (
     <section className="supported-sites">
-      <button type="button" className="sites-toggle" onClick={() => setExpanded(!expanded)}>
+      <button type="button" className="sites-toggle" onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
         {expanded ? 'Collapse' : 'Supported sites & tips'}
       </button>
       {expanded && (
         <div className="sites-content">
+          <div className="how-it-works">
+            <h4>How it works</h4>
+            <p>Paste a video URL → pick a quality or format → click Download. Formats load automatically from YouTube, Instagram, X, and more.</p>
+          </div>
           <div className="sites-list">
             <h4>1000+ sites supported</h4>
             <p className="sites-tags">{SITES.join(' · ')}</p>

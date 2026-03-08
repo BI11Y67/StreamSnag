@@ -40,6 +40,7 @@ export default function App() {
             key={t.id}
             className={`tab ${tab === t.id ? 'active' : ''}`}
             onClick={() => setTab(t.id)}
+            aria-selected={tab === t.id}
           >
             {t.label}
           </button>

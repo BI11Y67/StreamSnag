@@ -81,7 +81,8 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
       onJobCreated(data.job_id, { url: url.trim(), quality: usePreset ? preset : formatId })
       setUrl('')
     } catch (err) {
-      setError(err.message || 'Something went wrong.')
+      const msg = err.message || 'Something went wrong.'
+      setError(msg.includes('fetch') || msg.includes('Network') ? 'Unable to connect. Check your internet and try again.' : msg)
     } finally {
       setLoading(false)
     }
@@ -142,11 +143,14 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
       <p className="hint">Download videos from YouTube, Instagram, X, and more. Paste a URL, pick a format, then download.</p>
       <form onSubmit={handleSubmit} className="download-form">
         <div className="field-group url-field-wrap">
-          <label className="field-label">Video URL</label>
+          <label className="field-label" htmlFor="quick-url-input">Video URL</label>
           <div className="url-input-container">
             <input
+              id="quick-url-input"
               type="url"
               placeholder=" "
+              autoComplete="url"
+              title="Paste a video URL from YouTube, Instagram, X, or any supported site"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className="url-input"
@@ -278,7 +282,7 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
           </div>
         )}
         {error && <p className="error">{error}</p>}
-        <button type="submit" className="btn btn-primary" disabled={loading || (url.trim() && fetchLoading)}>
+        <button type="submit" className="btn btn-primary" disabled={loading || (url.trim() && fetchLoading)} title="Start download">
           {downloadLabel}
         </button>
       </form>

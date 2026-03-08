@@ -17,25 +17,31 @@ export default function Footer() {
 
   return (
     <footer className="footer">
-      <a href={BITCOIN_LINK} className="footer-link donate" title="Donate via Bitcoin">
-        Donate Bitcoin
-      </a>
-      <span className="footer-sep">·</span>
-      <button
-        type="button"
-        onClick={handleCopyUpi}
-        className="footer-link footer-upi-btn"
-        title="Copy UPI ID — open PhonePe, GPay, or any UPI app to pay"
-      >
-        UPI: <strong>{UPI_ID}</strong>
-        {copied && <span className="footer-copied">Copied! Open PhonePe, GPay, or any UPI app to pay.</span>}
-      </button>
-      <span className="footer-sep">·</span>
-      <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="footer-link github">
-        GitHub
-      </a>
+      <div className="footer-support">
+        <span className="footer-no-ads">No ads — we keep the experience clean. If you use this often, please consider donating to help keep it running.</span>
+      </div>
+      <div className="footer-support-links">
+        <span className="footer-support-label">Support us</span>
+        <a href={BITCOIN_LINK} className="footer-link donate" title="Donate via Bitcoin">
+          Donate Bitcoin
+        </a>
+        <span className="footer-sep">·</span>
+        <button
+          type="button"
+          onClick={handleCopyUpi}
+          className="footer-link footer-upi-btn"
+          title="Copy UPI ID — open PhonePe, GPay, or any UPI app to pay"
+        >
+          UPI: <strong>{UPI_ID}</strong>
+          {copied && <span className="footer-copied">Copied! Open PhonePe, GPay, or any UPI app to pay.</span>}
+        </button>
+        <span className="footer-sep">·</span>
+        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="footer-link github">
+          GitHub
+        </a>
+      </div>
       <p className="footer-credit">
-        Powered by yt-dlp. StreamSnag is for personal use only; respect copyright and platform ToS.
+        Powered by yt-dlp. Uses FFmpeg for conversion. StreamSnag is for personal use only; respect copyright and platform ToS.
       </p>
     </footer>
   )

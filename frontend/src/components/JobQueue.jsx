@@ -4,6 +4,7 @@ import './JobQueue.css'
 function JobItem({ jobId, meta, onUpdate }) {
   const [status, setStatus] = useState(null)
   const [downloading, setDownloading] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -18,7 +19,7 @@ function JobItem({ jobId, meta, onUpdate }) {
           setTimeout(poll, 1500)
         }
       } catch {
-        if (!cancelled) setStatus({ status: 'error', error: 'Could not fetch status' })
+        if (!cancelled) setStatus({ status: 'error', error: 'Unable to check download status. Check your connection and try again.' })
       }
     }
     poll()
@@ -27,6 +28,7 @@ function JobItem({ jobId, meta, onUpdate }) {
 
   async function handleDownload() {
     setDownloading(true)
+    setSaved(false)
     try {
       const res = await fetch(`/api/jobs/${jobId}/file`)
       const blob = await res.blob()
@@ -36,6 +38,8 @@ function JobItem({ jobId, meta, onUpdate }) {
       a.download = (status?.info?.title || 'video') + (meta?.quality === 'mp3' ? '.mp3' : meta?.quality === 'm4a' ? '.m4a' : '.mp4')
       a.click()
       URL.revokeObjectURL(url)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
     } finally {
       setDownloading(false)
     }
@@ -53,11 +57,12 @@ function JobItem({ jobId, meta, onUpdate }) {
         {s === 'completed' && (
           <button
             type="button"
-            className="btn-download"
+            className={`btn-download ${saved ? 'btn-download-saved' : ''}`}
             onClick={handleDownload}
             disabled={downloading}
+            title="Download the file to your device"
           >
-            {downloading ? '…' : 'Save file'}
+            {downloading ? '…' : saved ? 'Saved!' : 'Save file'}
           </button>
         )}
         {s === 'downloading' && (

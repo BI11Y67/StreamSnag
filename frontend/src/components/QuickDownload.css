@@ -91,7 +91,7 @@
 
 .format-list-heading {
   display: block;
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.85rem;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -102,7 +102,8 @@
 .format-option {
   display: block;
   width: 100%;
-  padding: 0.6rem 0.75rem;
+  padding: 0.75rem 0.85rem;
+  min-height: 44px;
   border: none;
   background: transparent;
   color: var(--text);
@@ -114,6 +115,11 @@
 
 .format-option:hover:not(:disabled) {
   background: var(--bg-card);
+}
+
+.format-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .format-option.active {
@@ -138,6 +144,12 @@
 .format-loading {
   font-weight: 400;
   color: var(--accent);
+  animation: format-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes format-loading-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .url-input-container {
@@ -147,6 +159,7 @@
 .quick-download .url-input {
   width: 100%;
   padding: 0.75rem 1rem;
+  min-height: 48px;
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -155,7 +168,8 @@
 }
 
 .quick-download .url-input:focus {
-  outline: none;
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
   border-color: var(--accent);
 }
 

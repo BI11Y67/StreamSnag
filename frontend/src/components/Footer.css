@@ -5,6 +5,33 @@
   margin-top: auto;
 }
 
+.footer-support {
+  margin-bottom: 1rem;
+}
+
+.footer-no-ads {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.footer-support-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0 0.5rem;
+}
+
+.footer-support-label {
+  margin-right: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
 .footer-link {
   font-weight: 600;
   font-size: 0.95rem;
