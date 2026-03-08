@@ -2,13 +2,16 @@ import { useState, useCallback } from 'react'
 import Header from './components/Header'
 import QuickDownload from './components/QuickDownload'
 import AgentFinder from './components/AgentFinder'
+import PlaylistDownload from './components/PlaylistDownload'
 import CookieUpload from './components/CookieUpload'
 import JobQueue from './components/JobQueue'
+import SupportedSites from './components/SupportedSites'
 import Footer from './components/Footer'
 import './App.css'
 
 const TABS = [
   { id: 'download', label: 'Quick Download' },
+  { id: 'playlist', label: 'Playlist' },
   { id: 'agent', label: 'AI Link Finder' },
 ]
 
@@ -48,10 +51,14 @@ export default function App() {
         {tab === 'download' && (
           <QuickDownload sessionId={sessionId} onJobCreated={addJob} onJobsCreated={addJobs} />
         )}
+        {tab === 'playlist' && (
+          <PlaylistDownload sessionId={sessionId} onJobsCreated={addJobs} />
+        )}
         {tab === 'agent' && (
           <AgentFinder sessionId={sessionId} onJobsCreated={addJobs} />
         )}
       </main>
+      <SupportedSites />
       <JobQueue jobs={jobs} onUpdate={updateJob} />
       <Footer />
     </div>

@@ -2,11 +2,14 @@ import { useState } from 'react'
 import './AgentFinder.css'
 
 const QUALITIES = [
+  { value: '360p', label: '360p' },
+  { value: '480p', label: '480p' },
   { value: '720p', label: '720p' },
   { value: '1080p', label: '1080p' },
   { value: '2k', label: '2K' },
   { value: '4k', label: '4K' },
   { value: 'mp3', label: 'MP3' },
+  { value: 'm4a', label: 'M4A' },
 ]
 
 export default function AgentFinder({ sessionId, onJobsCreated }) {

@@ -33,7 +33,7 @@ function JobItem({ jobId, meta, onUpdate }) {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = (status?.info?.title || 'video') + (meta?.quality === 'mp3' ? '.mp3' : '.mp4')
+      a.download = (status?.info?.title || 'video') + (meta?.quality === 'mp3' ? '.mp3' : meta?.quality === 'm4a' ? '.m4a' : '.mp4')
       a.click()
       URL.revokeObjectURL(url)
     } finally {
@@ -43,7 +43,7 @@ function JobItem({ jobId, meta, onUpdate }) {
 
   if (!status) return <li className="job-item">Loading…</li>
 
-  const { status: s, progress, error, info } = status
+  const { status: s, progress, error, info, suggestion } = status
   const label = info?.title || meta?.url || jobId.slice(0, 8)
 
   return (
@@ -64,7 +64,12 @@ function JobItem({ jobId, meta, onUpdate }) {
           <span className="progress">{progress ?? 0}%</span>
         )}
         {(s === 'started' || s === 'processing') && <span>Preparing…</span>}
-        {s === 'error' && <span className="job-error">{error}</span>}
+        {s === 'error' && (
+          <span>
+            <span className="job-error">{error}</span>
+            {suggestion && <span className="job-suggestion"> — {suggestion}</span>}
+          </span>
+        )}
       </span>
     </li>
   )

@@ -23,6 +23,18 @@
   color: var(--text-muted);
 }
 
+.footer-upi {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.footer-upi code {
+  background: var(--bg-input);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
 .footer-credit {
   margin: 0.75rem 0 0;
   color: var(--text-muted);

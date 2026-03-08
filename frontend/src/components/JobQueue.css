@@ -50,6 +50,11 @@
   font-size: 0.85rem;
 }
 
+.job-suggestion {
+  color: var(--amber);
+  font-size: 0.85rem;
+}
+
 .progress {
   color: var(--accent);
   font-weight: 600;
