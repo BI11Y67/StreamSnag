@@ -38,3 +38,22 @@
 .main {
   margin-bottom: 2rem;
 }
+
+.coming-soon.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.coming-soon h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.coming-soon-text {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}

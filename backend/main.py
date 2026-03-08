@@ -93,42 +93,44 @@ class PlaylistDownloadRequest(BaseModel):
     session_id: Optional[str] = None
 
 
-def _sanitize_error_for_user(error: str) -> str:
-    """Rewrite yt-dlp/CLI messages so the public only sees relevant info."""
-    out = error
-    # Remove CLI-only hints the public can't use
-    if "list-formats" in out.lower() or "list_formats" in out.lower():
-        out = re.sub(
-            r"\s*Use\s+--list-formats\s+for\s+a\s+list\s+of\s+available\s+formats\.?\s*",
-            " ",
-            out,
-            flags=re.IGNORECASE,
-        )
-        out = re.sub(
-            r"\s*Use\s+--list_formats\s+for\s+a\s+list\s+of\s+available\s+formats\.?\s*",
-            " ",
-            out,
-            flags=re.IGNORECASE,
-        )
-    if "requested format" in out.lower() or "format is not available" in out.lower():
-        out = "This format isn't available for this video."
-    out = out.strip()
-    return out or "Download failed."
+def _strip_ansi(text: str) -> str:
+    """Remove ANSI escape codes (colors, etc.) and literal [0;31m-style fragments."""
+    out = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", text)
+    out = re.sub(r"\[\d+;\d+m", "", out)  # literal [0;31m if escape char was lost
+    return out
+
+
+def _user_error_message(raw_error: str) -> str:
+    """Return a friendly sentence for each error type. Never pass through raw yt-dlp output."""
+    err = _strip_ansi(raw_error).lower()
+    if "list-formats" in err or "list_formats" in err or "requested format" in err or "format is not available" in err or "no video formats" in err:
+        return "This format isn't available for this video."
+    if "403" in err or "forbidden" in err:
+        return "This video is temporarily unavailable."
+    if "sign in" in err or "login" in err:
+        return "This video requires sign-in."
+    if "private" in err or "unavailable" in err:
+        return "This video is not available."
+    if "geoblocked" in err or "country" in err:
+        return "This video is not available in your region."
+    return "The download could not be completed."
 
 
 def _suggest_format_alternative(requested: str, error: str, format_id: Optional[str] = None) -> Optional[str]:
     """Suggest an alternative format when the requested one fails."""
+    REPORT_LINK = " Report issues: x.com/socrazymedia"
     err_lower = error.lower()
     if "requested format" in err_lower or "format is not available" in err_lower or "no video formats" in err_lower:
         if format_id and format_id not in FORMAT_MAP:
-            return "Try a recommended format at the top, or pick another from the list."
+            return f"Try a recommended format at the top, or pick another from the list.{REPORT_LINK}"
         fallbacks = {"4k": "2k or 1080p", "2k": "1080p or 720p", "1080p": "720p or 480p", "720p": "480p or 360p",
                      "480p": "360p", "mp3": "Try M4A for audio or 720p for video.", "m4a": "Try MP3 for audio."}
-        return fallbacks.get(requested, "Try a lower quality (e.g. 720p or 480p) or MP3 for audio.")
+        base = fallbacks.get(requested, "Try a lower quality (e.g. 720p or 480p) or MP3 for audio.")
+        return base + REPORT_LINK
     if "403" in err_lower or "forbidden" in err_lower:
-        return "YouTube may be blocking. Try uploading cookies (see Cookie Upload above) or try again later."
+        return f"YouTube may be blocking. Try uploading cookies (see Cookie Upload above) or try again later.{REPORT_LINK}"
     if "sign in" in err_lower or "login" in err_lower:
-        return "This video requires sign-in. Upload your YouTube cookies to download."
+        return f"This video requires sign-in. Upload your YouTube cookies to download.{REPORT_LINK}"
     return None
 
 
@@ -181,15 +183,31 @@ def run_ydl(url: str, out_dir: Path, quality: str, cookies_path: Optional[Path] 
             err_str = str(e)
             if job_id:
                 jobs[job_id]["status"] = "error"
-                jobs[job_id]["error"] = _sanitize_error_for_user(err_str)
+                jobs[job_id]["error"] = _user_error_message(err_str)
                 suggestion = _suggest_format_alternative(quality, err_str, format_id=format_id)
                 if suggestion:
                     jobs[job_id]["suggestion"] = suggestion
             raise
 
 
+def _format_height_label(h: Optional[int]) -> str:
+    """e.g. 720 -> 720p, 1080 -> 1080p Full HD."""
+    if not h:
+        return ""
+    if h >= 2160:
+        return f"{h}p 4K"
+    if h >= 1440:
+        return f"{h}p 2K"
+    if h >= 1080:
+        return f"{h}p Full HD"
+    if h >= 720:
+        return f"{h}p HD"
+    return f"{h}p"
+
+
 def _extract_formats_from_info(info: dict, skip_fallbacks: bool = False) -> list:
     """Build format list with type (video/audio/video+audio) from yt-dlp info."""
+    RECOMMENDED_IDS = {"best", "bestaudio"}
     fmts = info.get("formats") or []
     seen = set()
     video_fmts = []
@@ -199,7 +217,7 @@ def _extract_formats_from_info(info: dict, skip_fallbacks: bool = False) -> list
         if fid is None:
             continue
         fid = str(fid)
-        if fid in seen:
+        if fid in seen or fid in RECOMMENDED_IDS:
             continue
         vcodec = (f.get("vcodec") or "none").lower()
         acodec = (f.get("acodec") or "none").lower()
@@ -207,17 +225,26 @@ def _extract_formats_from_info(info: dict, skip_fallbacks: bool = False) -> list
             continue
         seen.add(fid)
         h = f.get("height")
-        res = f.get("resolution") or (f"{h}p" if h else "")
         ext = f.get("ext", "")
         desc = f.get("format_note") or ""
+        abr = f.get("abr")
+        asr = f.get("asr")
         if vcodec != "none" and acodec != "none":
             fmt_type = "video+audio"
+            res_label = _format_height_label(h)
+            parts = [res_label, ext, desc] if res_label or ext else [ext or "?", f"id:{fid}"]
         elif vcodec != "none":
             fmt_type = "video"
+            res_label = _format_height_label(h)
+            parts = [res_label, ext, desc] if res_label or ext else [ext or "?", f"id:{fid}"]
         else:
             fmt_type = "audio"
-        parts = [res, ext, desc] if res or ext else [ext or "?", f"id:{fid}"]
-        label = " | ".join(x for x in parts if x)
+            bitrate = f"{int(abr)} kbps" if abr else ""
+            hz = f"{int(asr)} Hz" if asr else ""
+            parts = [x for x in [bitrate, hz, ext, desc] if x]
+            parts = parts if parts else [ext or "?", f"id:{fid}"]
+        label = " | ".join(str(x) for x in parts if x)
+        res = f.get("resolution") or (f"{h}p" if h else "")
         entry = {"format_id": fid, "label": label, "resolution": res, "ext": ext, "type": fmt_type}
         if fmt_type == "audio":
             audio_fmts.append(entry)
@@ -226,19 +253,16 @@ def _extract_formats_from_info(info: dict, skip_fallbacks: bool = False) -> list
     if not skip_fallbacks:
         if not video_fmts:
             video_fmts = [
-                {"format_id": "bestvideo[height<=720]+bestaudio/best[height<=720]", "label": "720p", "type": "video+audio"},
+                {"format_id": "bestvideo[height<=720]+bestaudio/best[height<=720]", "label": "720p HD", "type": "video+audio"},
                 {"format_id": "bestvideo[height<=480]+bestaudio/best[height<=480]", "label": "480p", "type": "video+audio"},
                 {"format_id": "bestvideo[height<=360]+bestaudio/best[height<=360]", "label": "360p", "type": "video+audio"},
             ]
-        if not audio_fmts:
-            audio_fmts = [
-                {"format_id": "bestaudio", "label": "Best audio", "type": "audio"},
-            ]
-    return [
-        {"format_id": "best", "label": "Best video + audio (auto)", "type": "video+audio"},
-        {"format_id": "bestvideo+bestaudio", "label": "Best video + best audio (merge)", "type": "video+audio"},
-        {"format_id": "bestaudio", "label": "Best audio only", "type": "audio"},
-    ] + video_fmts + audio_fmts
+        # Do NOT add bestaudio to audio_fmts - it's already in Recommended
+    recommended = [
+        {"format_id": "best", "label": "Best video + audio", "type": "video+audio"},
+        {"format_id": "bestaudio", "label": "Best audio", "type": "audio"},
+    ]
+    return recommended + video_fmts + audio_fmts
 
 
 @app.get("/api/formats")
@@ -294,8 +318,12 @@ async def start_download(
         try:
             run_ydl(url, out_dir, quality or "1080p", cookies_path, job_id, format_id=format_id or None)
         except Exception as e:
+            err_str = str(e)
             jobs[job_id]["status"] = "error"
-            jobs[job_id]["error"] = str(e)
+            jobs[job_id]["error"] = _user_error_message(err_str)
+            sug = _suggest_format_alternative(quality or "1080p", err_str, format_id=format_id)
+            if sug:
+                jobs[job_id]["suggestion"] = sug
 
     threading.Thread(target=task, daemon=True).start()
     return {"job_id": job_id, "message": "Download started."}
@@ -484,8 +512,12 @@ async def agent_bulk(body: AgentBulkRequest):
             try:
                 run_ydl(u, od, q, cp, jid)
             except Exception as e:
+                err_str = str(e)
                 jobs[jid]["status"] = "error"
-                jobs[jid]["error"] = str(e)
+                jobs[jid]["error"] = _user_error_message(err_str)
+                sug = _suggest_format_alternative(q, err_str)
+                if sug:
+                    jobs[jid]["suggestion"] = sug
 
         threading.Thread(target=task, daemon=True).start()
     return {"job_ids": job_ids, "message": f"Started {len(job_ids)} download(s)."}

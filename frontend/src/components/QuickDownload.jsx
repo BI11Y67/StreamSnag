@@ -106,7 +106,7 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
     }
   }
 
-  const recommended = formats.filter((f) => ['best', 'bestvideo+bestaudio', 'bestaudio'].includes(f.format_id))
+  const recommended = formats.filter((f) => ['best', 'bestaudio'].includes(f.format_id))
   const videoFormats = formats.filter((f) => f.type === 'video')
   const audioFormats = formats.filter((f) => f.type === 'audio')
   const hasUrlFormats = formats.length > 0
@@ -241,6 +241,20 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
             rows={4}
             disabled={multiLoading}
           />
+          <div className="multi-quality-row">
+            <label className="multi-quality-label">Download as</label>
+            <select value={preset} onChange={(e) => setPreset(e.target.value)} className="quality-select" disabled={multiLoading}>
+              <optgroup label="Video">
+                {PRESETS.filter((q) => !['mp3', 'm4a'].includes(q.value)).map((q) => (
+                  <option key={q.value} value={q.value}>{q.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Audio">
+                <option value="mp3">MP3</option>
+                <option value="m4a">M4A</option>
+              </optgroup>
+            </select>
+          </div>
           {multiError && <p className="error">{multiError}</p>}
           <button type="submit" className="btn btn-amber" disabled={multiLoading}>
             {multiLoading ? 'Starting…' : 'Download all'}

@@ -268,3 +268,20 @@
   outline: none;
   border-color: var(--accent);
 }
+
+.multi-quality-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.multi-quality-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.multi-quality-row .quality-select {
+  min-width: 8rem;
+}

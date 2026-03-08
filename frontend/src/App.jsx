@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import Header from './components/Header'
 import QuickDownload from './components/QuickDownload'
-import AgentFinder from './components/AgentFinder'
 import PlaylistDownload from './components/PlaylistDownload'
 import CookieUpload from './components/CookieUpload'
 import JobQueue from './components/JobQueue'
@@ -12,7 +11,7 @@ import './App.css'
 const TABS = [
   { id: 'download', label: 'Quick Download' },
   { id: 'playlist', label: 'Playlist' },
-  { id: 'agent', label: 'AI Link Finder' },
+  { id: 'agent', label: 'AI Link Finder (Coming soon)' },
 ]
 
 export default function App() {
@@ -35,7 +34,6 @@ export default function App() {
   return (
     <div className="app">
       <Header />
-      <CookieUpload sessionId={sessionId} />
       <nav className="tabs">
         {TABS.map((t) => (
           <button
@@ -55,9 +53,13 @@ export default function App() {
           <PlaylistDownload sessionId={sessionId} onJobsCreated={addJobs} />
         )}
         {tab === 'agent' && (
-          <AgentFinder sessionId={sessionId} onJobsCreated={addJobs} />
+          <section className="coming-soon card">
+            <h2>AI Link Finder</h2>
+            <p className="coming-soon-text">Coming soon — paste a page URL to extract video links when you can&apos;t copy them directly. We&apos;ll ship this in a future update.</p>
+          </section>
         )}
       </main>
+      <CookieUpload sessionId={sessionId} />
       <SupportedSites />
       <JobQueue jobs={jobs} onUpdate={updateJob} />
       <Footer />
