@@ -19,7 +19,7 @@ export default function SupportedSites() {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <section className="supported-sites">
+    <section className="supported-sites section-block">
       <button
         type="button"
         className="sites-toggle"
@@ -33,10 +33,6 @@ export default function SupportedSites() {
       </button>
       <div className={`sites-content ${expanded ? 'sites-content--open' : ''}`}>
         <div className="sites-content-inner">
-          <div className="how-it-works">
-            <h4>How it works</h4>
-            <p>Paste a video URL → pick a quality or format → click Download. Formats load automatically from YouTube, Instagram, X, and more.</p>
-          </div>
           <div className="sites-list">
             <h4>1000+ sites supported</h4>
             <p className="sites-tags">{SITES.join(' · ')}</p>

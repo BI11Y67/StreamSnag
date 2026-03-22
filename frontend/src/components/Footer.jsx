@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import './Footer.css'
 
 const GITHUB_URL = 'https://github.com/bi11y67'
@@ -6,9 +7,15 @@ const BITCOIN_ADDRESS = 'bc1qdz50swgf4z9n4px3zu0lera9fcnkj5wx3l405g'
 const BITCOIN_LINK = `bitcoin:${BITCOIN_ADDRESS}`
 const UPI_ID = 'mukeshavik@ybl'
 const UPI_PAYEE = 'StreamSnag'
-// App-specific deep links (avoid generic upi:// which opens WhatsApp)
 const PHONEPE_LINK = `phonepe://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE)}&cu=INR`
 const GPAY_LINK = `tez://upi/pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE)}&cu=INR`
+
+const FOOTER_LINKS = [
+  { to: '/', label: 'Home' },
+  { to: '/youtube-downloader', label: 'YouTube Downloader' },
+  { to: '/instagram-downloader', label: 'Instagram Downloader' },
+  { to: '/tiktok-downloader', label: 'TikTok Downloader' },
+]
 
 const IconBitcoin = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -53,6 +60,23 @@ export default function Footer() {
 
   return (
     <footer className="footer">
+      <nav className="footer-nav" aria-label="Site">
+        <ul className="footer-nav-list">
+          {FOOTER_LINKS.map(({ to, label }) => (
+            <li key={to}>
+              <Link to={to} className="footer-nav-link">
+                {label}
+              </Link>
+            </li>
+          ))}
+          <li>
+            <a href="/#download" className="footer-nav-link">
+              Download
+            </a>
+          </li>
+        </ul>
+      </nav>
+
       <p className="footer-msg">No ads — we keep the experience clean. If you use this often, please consider donating.</p>
       <div className="footer-support">
         <a href={BITCOIN_LINK} className="footer-btn footer-btn-bitcoin" title="Donate via Bitcoin">
@@ -89,6 +113,15 @@ export default function Footer() {
         </a>
       </div>
       <p className="footer-upi-note">Prefer PhonePe or GPay? Copy the UPI ID and paste in your app.</p>
+
+      <p className="footer-seo">
+        <strong>StreamSnag</strong> is a free online video downloader for personal use. Save videos from{' '}
+        <Link to="/youtube-downloader">YouTube</Link>, <Link to="/instagram-downloader">Instagram</Link>,{' '}
+        <Link to="/tiktok-downloader">TikTok</Link>, X (Twitter), Facebook, Vimeo, and hundreds of other sites supported by
+        yt-dlp. Paste a URL, choose quality or format, and download MP4, WebM, or audio. Always respect copyright and each
+        platform&rsquo;s terms of service.
+      </p>
+
       <p className="footer-credit">Powered by yt-dlp. Uses FFmpeg. Personal use only; respect copyright and platform ToS.</p>
     </footer>
   )

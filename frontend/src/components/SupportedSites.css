@@ -52,21 +52,8 @@
   border-top: 1px solid var(--border);
 }
 
-.how-it-works {
+.sites-list {
   padding-top: 0.75rem;
-}
-
-.how-it-works h4 {
-  margin: 0 0 0.4rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-.how-it-works p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.6;
 }
 
 .sites-list h4,

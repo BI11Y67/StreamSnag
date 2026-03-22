@@ -138,8 +138,8 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
   }
 
   return (
-    <section className="quick-download card">
-      <h2>Quick Download</h2>
+    <section className="quick-download download-card card">
+      <h2 className="download-card-title">Quick Download</h2>
       <p className="hint">Download videos from YouTube, Instagram, X, and more. Paste a URL, pick a format, then download.</p>
       <form onSubmit={handleSubmit} className="download-form">
         <div className="field-group url-field-wrap">
@@ -194,16 +194,19 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
               </button>
             </div>
             {usePreset ? (
-              <select
-                value={preset}
-                onChange={(e) => setPreset(e.target.value)}
-                className="quality-select"
-                disabled={loading}
-              >
+              <div className="format-chips" role="group" aria-label="Quality preset">
                 {PRESETS.map((q) => (
-                  <option key={q.value} value={q.value}>{q.label}</option>
+                  <button
+                    key={q.value}
+                    type="button"
+                    className={`format-chip ${preset === q.value ? 'active' : ''}`}
+                    onClick={() => setPreset(q.value)}
+                    disabled={loading}
+                  >
+                    {q.label}
+                  </button>
                 ))}
-              </select>
+              </div>
             ) : (
               <div className="format-dropdown">
                 <button
@@ -282,7 +285,12 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
           </div>
         )}
         {error && <p className="error">{error}</p>}
-        <button type="submit" className="btn btn-primary" disabled={loading || (url.trim() && fetchLoading)} title="Start download">
+        <button
+          type="submit"
+          className="btn btn-primary btn-download-full"
+          disabled={loading || (url.trim() && fetchLoading)}
+          title="Start download"
+        >
           {downloadLabel}
         </button>
       </form>

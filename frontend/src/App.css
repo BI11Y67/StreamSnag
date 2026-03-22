@@ -1,49 +1,61 @@
+.app-landing,
 .app {
   flex: 1;
-  max-width: 720px;
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
-  padding: 0 1rem 2rem;
+  padding: 0 1.25rem 3rem;
+}
+
+.download-workspace {
+  scroll-margin-top: 88px;
+  margin-bottom: 0.5rem;
 }
 
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  padding: 0.35rem;
+  background: rgba(22, 27, 34, 0.65);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
 }
 
 .tab {
-  padding: 0.75rem 1.25rem;
-  background: none;
+  padding: 0.65rem 1.1rem;
+  background: transparent;
   border: none;
   color: var(--text-muted);
   font-weight: 600;
-  font-size: 0.95rem;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.2s, border-color 0.2s;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
 }
 
 .tab:hover {
   color: var(--text);
+  background: rgba(63, 185, 80, 0.08);
 }
 
 .tab.active {
   color: var(--accent);
-  border-bottom-color: var(--accent);
+  background: rgba(63, 185, 80, 0.14);
+  box-shadow: 0 0 0 1px rgba(63, 185, 80, 0.25);
 }
 
 .main {
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
 .coming-soon.card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 18px;
   padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .coming-soon h2 {
