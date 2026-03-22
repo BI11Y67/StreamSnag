@@ -5,8 +5,6 @@ import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import QuickDownload from '../components/QuickDownload'
 import PlaylistDownload from '../components/PlaylistDownload'
-import CookieUpload from '../components/CookieUpload'
-import JobQueue from '../components/JobQueue'
 import SupportedSites from '../components/SupportedSites'
 import HowItWorks from '../components/HowItWorks'
 import PlatformLogos from '../components/PlatformLogos'
@@ -57,10 +55,21 @@ export default function DownloadPage({ sessionId, jobs, addJob, addJobs, updateJ
           </nav>
           <main className="main">
             {tab === 'download' && (
-              <QuickDownload sessionId={sessionId} onJobCreated={addJob} onJobsCreated={addJobs} />
+              <QuickDownload
+                sessionId={sessionId}
+                onJobCreated={addJob}
+                onJobsCreated={addJobs}
+                jobs={jobs}
+                onUpdate={updateJob}
+              />
             )}
             {tab === 'playlist' && (
-              <PlaylistDownload sessionId={sessionId} onJobsCreated={addJobs} />
+              <PlaylistDownload
+                sessionId={sessionId}
+                onJobsCreated={addJobs}
+                jobs={jobs}
+                onUpdate={updateJob}
+              />
             )}
             {tab === 'agent' && (
               <section className="coming-soon card">
@@ -78,8 +87,6 @@ export default function DownloadPage({ sessionId, jobs, addJob, addJobs, updateJ
         <PlatformLogos />
         <SupportedSites />
         <FAQ />
-        <CookieUpload sessionId={sessionId} />
-        <JobQueue jobs={jobs} onUpdate={updateJob} />
         <Footer />
       </div>
     </>

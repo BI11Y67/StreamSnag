@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import CookieUpload from './CookieUpload'
+import JobQueue from './JobQueue'
 import './QuickDownload.css'
 
 const PRESETS = [
@@ -18,7 +20,7 @@ const URL_EXAMPLES = [
   'https://www.instagram.com/reel/...',
 ]
 
-export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }) {
+export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated, jobs = [], onUpdate }) {
   const [url, setUrl] = useState('')
   const [formats, setFormats] = useState([])
   const [formatId, setFormatId] = useState('best')
@@ -31,6 +33,7 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
   const [multiUrls, setMultiUrls] = useState('')
   const [multiLoading, setMultiLoading] = useState(false)
   const [multiError, setMultiError] = useState('')
+  const [subTab, setSubTab] = useState('queue')
   const lastFetchedUrl = useRef('')
 
   useEffect(() => {
@@ -324,10 +327,61 @@ export default function QuickDownload({ sessionId, onJobCreated, onJobsCreated }
             </select>
           </div>
           {multiError && <p className="error">{multiError}</p>}
-          <button type="submit" className="btn btn-amber" disabled={multiLoading}>
-            {multiLoading ? 'Starting…' : 'Download all'}
-          </button>
+          <div className="multi-actions">
+            <div className="multi-action-group">
+              <button type="submit" className="btn btn-amber" disabled={multiLoading}>
+                {multiLoading ? 'Starting…' : 'Download all'}
+              </button>
+              <span className="action-hint">Bulk download</span>
+            </div>
+          </div>
         </form>
+      </div>
+
+      <div className="card-subtabs">
+        <div className="card-subtabs-nav" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={subTab === 'queue'}
+            aria-controls="panel-queue"
+            id="tab-queue"
+            className={`card-subtab ${subTab === 'queue' ? 'active' : ''}`}
+            onClick={() => setSubTab('queue')}
+          >
+            Download queue
+            {jobs.length > 0 && <span className="subtab-badge">{jobs.length}</span>}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={subTab === 'cookies'}
+            aria-controls="panel-cookies"
+            id="tab-cookies"
+            className={`card-subtab ${subTab === 'cookies' ? 'active' : ''}`}
+            onClick={() => setSubTab('cookies')}
+          >
+            Cookies
+          </button>
+        </div>
+        <div
+          id="panel-queue"
+          role="tabpanel"
+          aria-labelledby="tab-queue"
+          hidden={subTab !== 'queue'}
+          className="card-subtab-panel"
+        >
+          <JobQueue jobs={jobs} onUpdate={onUpdate} compact />
+        </div>
+        <div
+          id="panel-cookies"
+          role="tabpanel"
+          aria-labelledby="tab-cookies"
+          hidden={subTab !== 'cookies'}
+          className="card-subtab-panel"
+        >
+          <CookieUpload sessionId={sessionId} panel />
+        </div>
       </div>
     </section>
   )

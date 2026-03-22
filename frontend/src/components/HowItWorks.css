@@ -48,7 +48,7 @@
 
 .how-step:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), 0 0 24px rgba(63, 185, 80, 0.08);
   border-color: rgba(63, 185, 80, 0.25);
 }
 

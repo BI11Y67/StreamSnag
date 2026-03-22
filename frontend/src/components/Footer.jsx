@@ -115,10 +115,10 @@ export default function Footer() {
       <p className="footer-upi-note">Prefer PhonePe or GPay? Copy the UPI ID and paste in your app.</p>
 
       <p className="footer-seo">
-        <strong>StreamSnag</strong> is a free online video downloader for personal use. Save videos from{' '}
+        <strong>StreamSnag</strong> is a free online video downloader that supports{' '}
         <Link to="/youtube-downloader">YouTube</Link>, <Link to="/instagram-downloader">Instagram</Link>,{' '}
-        <Link to="/tiktok-downloader">TikTok</Link>, X (Twitter), Facebook, Vimeo, and hundreds of other sites supported by
-        yt-dlp. Paste a URL, choose quality or format, and download MP4, WebM, or audio. Always respect copyright and each
+        <Link to="/tiktok-downloader">TikTok</Link>, X (Twitter), Facebook, and Vimeo. You can download videos in MP4,
+        MP3, 720p, 1080p, and more using yt-dlp directly in your browser. Always respect copyright and each
         platform&rsquo;s terms of service.
       </p>
 

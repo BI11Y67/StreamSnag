@@ -9,7 +9,7 @@ export function getSiteUrl() {
 export const DEFAULT_SEO = {
   title: `${SITE_NAME} — Free Video Downloader | YouTube, Instagram, TikTok & More`,
   description:
-    'Download videos from YouTube, Instagram, TikTok, X, Facebook, Vimeo, and 1000+ sites. Paste a URL, pick quality, and save — fast, free, no signup. Personal use only; respect copyright.',
+    'StreamSnag is a free online video downloader that supports YouTube, Instagram, TikTok, X (Twitter), Facebook, and Vimeo. Download videos in MP4, MP3, 720p, 1080p, and more using yt-dlp directly in your browser.',
   ogImage: '/favicon.svg',
 }
 

@@ -55,15 +55,18 @@ function JobItem({ jobId, meta, onUpdate }) {
       <span className="job-label" title={meta?.url || jobId}>{label}</span>
       <span className="job-status">
         {s === 'completed' && (
-          <button
-            type="button"
-            className={`btn-download ${saved ? 'btn-download-saved' : ''}`}
-            onClick={handleDownload}
-            disabled={downloading}
-            title="Download the file to your device"
-          >
-            {downloading ? '…' : saved ? 'Saved!' : 'Save file'}
-          </button>
+          <span className="job-save-wrap">
+            <button
+              type="button"
+              className={`btn-download ${saved ? 'btn-download-saved' : ''}`}
+              onClick={handleDownload}
+              disabled={downloading}
+              title="Export queue"
+            >
+              {downloading ? '…' : saved ? 'Saved!' : 'Save list'}
+            </button>
+            <span className="job-save-hint">Export queue</span>
+          </span>
         )}
         {s === 'downloading' && (
           <span className="progress">{progress ?? 0}%</span>
@@ -80,12 +83,18 @@ function JobItem({ jobId, meta, onUpdate }) {
   )
 }
 
-export default function JobQueue({ jobs, onUpdate }) {
-  if (!jobs.length) return null
-
+export default function JobQueue({ jobs, onUpdate, compact = false }) {
   return (
-    <section className="job-queue">
-      <h3>Download queue</h3>
+    <section className={`job-queue ${compact ? 'job-queue--compact' : ''} ${!jobs.length ? 'job-queue--empty' : ''}`}>
+      <h3>
+        Download queue
+        {jobs.length > 0 && (
+          <span className="job-queue-count"> — {jobs.length} {jobs.length === 1 ? 'video' : 'videos'} queued</span>
+        )}
+      </h3>
+      {jobs.length === 0 ? (
+        <p className="job-queue-empty">No downloads yet. Queued links will appear here.</p>
+      ) : (
       <ul className="job-list">
         {jobs.map((j) => (
           <JobItem
@@ -96,6 +105,7 @@ export default function JobQueue({ jobs, onUpdate }) {
           />
         ))}
       </ul>
+      )}
     </section>
   )
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import JobQueue from './JobQueue'
 import './PlaylistDownload.css'
 
 const PRESETS = [
@@ -12,7 +13,7 @@ const PRESETS = [
   { value: 'm4a', label: 'M4A' },
 ]
 
-export default function PlaylistDownload({ sessionId, onJobsCreated }) {
+export default function PlaylistDownload({ sessionId, onJobsCreated, jobs = [], onUpdate }) {
   const [playlistUrl, setPlaylistUrl] = useState('')
   const [preset, setPreset] = useState('1080p')
   const [loading, setLoading] = useState(false)
@@ -88,6 +89,7 @@ export default function PlaylistDownload({ sessionId, onJobsCreated }) {
           {loading ? 'Starting…' : 'Download playlist'}
         </button>
       </form>
+      <JobQueue jobs={jobs} onUpdate={onUpdate} compact />
     </section>
   )
 }
